@@ -64,8 +64,43 @@ class CreateUser(Resource):
         except Exception as e:
             return {'error': str(e)}
 
+class AddEvent(Resource):
+    def post(self):
+        try:
+            # Parse the arguments
+            parser = reqparse.RequestParser()
+            parser.add_argument('name', type=str)
+            parser.add_argument('date', type=str)
+            parser.add_argument('creator', type=str)
+            parser.add_argument('personal', type=str)
+            parser.add_argument('event_type_id', type=str)
+            parser.add_argument('place_id', type=str)
+            args = parser.parse_args()
+
+            _eventName = args['name']
+            _eventDate = args['date']
+            _eventCreator = args['creator']
+            _eventPersonal = args['personal']
+            _event_id_Type_Event = args['event_type_id']
+            _event_id_Place = args['place_id']
+
+            #print _userId;
+
+            conn = mysql.connect()
+            cursor = conn.cursor()
+            cursor.callproc('sp_AddEvents', (_eventName, _eventDate, _eventCreator, _eventPersonal,
+                                             _event_id_Type_Event, _event_id_Place))
+            data = cursor.fetchall()
+
+            conn.commit()
+            return {'StatusCode':'200', 'Message': 'Success'}
+
+        except Exception as e:
+            return {'error': str(e)}
+
 
 api.add_resource(CreateUser, '/CreateUser')
+api.add_resource(AddEvent, '/AddEvent')
 
 if __name__ == '__main__':
     app.run(debug=True)
