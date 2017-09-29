@@ -5,14 +5,13 @@ from flask.ext.mysql import MySQL
 
 app = Flask(__name__)
 
-
 mysql = MySQL()
 
 # MySQL configuration
-app.config['MYSQL_DATABASE_USER'] = 'root'
-app.config['MYSQL_DATABASE_PASSWORD'] = 'root'
-app.config['MYSQL_DATABASE_DB'] = 'fitnowdb'
-app.config['MYSQL_DATABASE_HOST'] = 'localhost'
+app.config['MYSQL_DATABASE_USER'] = 'heroku_ad48c7c4d037cf0'
+app.config['MYSQL_DATABASE_PASSWORD'] = 'f3db00f8'
+app.config['MYSQL_DATABASE_DB'] = 'heroku_ad48c7c4d037cf0'
+app.config['MYSQL_DATABASE_HOST'] = 'us-cdbr-iron-east-05.cleardb.net'
 
 mysql.init_app(app)
 api = Api(app)
@@ -33,7 +32,6 @@ class CreateUser(Resource):
             parser.add_argument('email', type=str, help='Email to create user')
             parser.add_argument('username', type=str, help='Username address to create user')
             parser.add_argument('password', type=str, help='Password to create user')
-            parser.add_argument('is_worked', type=str, help='Is_Worked to create user')
             parser.add_argument('direction', type=str, help='Direction to create user')
 
             args = parser.parse_args()
@@ -48,14 +46,13 @@ class CreateUser(Resource):
             _userEmail = args['email']
             _userUsername = args['username']
             _userPassword = args['password']
-            _userIsWorked = args['is_worked']
             _userDirection = args['direction']
 
             conn = mysql.connect()
             cursor = conn.cursor()
-            cursor.callproc('spCreateUser', (_userName, _userFatLastName, _userMotLastName, _userSex, _userDni,
-                                             _userBorn, _userPhone, _userEmail, _userUsername, _userPassword,
-                                             _userIsWorked, _userDirection))
+            cursor.callproc('sp_CreateUser', (_userName, _userFatLastName, _userMotLastName, _userSex, _userDni,
+                                              _userBorn, _userPhone, _userEmail, _userUsername, _userPassword,
+                                              _userDirection))
             data = cursor.fetchall()
 
             if len(data) is 0:
