@@ -98,8 +98,70 @@ class AddEvent(Resource):
             return {'error': str(e)}
 
 
+class GetAllEvents(Resource):
+    def get(self):
+        try:
+            # Parse the arguments
+            parser = reqparse.RequestParser()
+            parser.add_argument('name', type=str)
+            args = parser.parse_args()
+
+            _eventName = args['name']
+
+
+            conn = mysql.connect()
+            cursor = conn.cursor()
+            cursor.callproc('sp_GetAllEvents', (_eventName,))
+            data = cursor.fetchall()
+
+            events_list = []
+            for event in data:
+                i = {
+                    'IdEvent': event[0],
+                    'Name': event[1],
+                    'Creator': event[2],
+                    'Personal': event[3],
+                    'IdType_Event': event[4],
+                    'IdPlace': event[5]
+                }
+                events_list.append(i)
+            return {'StatusCode': '200', 'Events': events_list}
+
+        except Exception as e:
+            return {'error': str(e)}
+
+
+class AuthenticateUser(Resource):
+    def post(self):
+        try:
+            parser = reqparse.RequestParser()
+            parser.add_argument('user_name', type=str, help='User Name for Authentication')
+            parser.add_argument('password', type=str, help='Password for Authentication')
+            args = parser.parse_args()
+
+            _userName = args['user_name']
+            _userPassword = args['password']
+
+            conn = mysql.connect()
+            cursor = conn.cursor()
+            cursor.callproc('sp_AuthenticateUser', (_userName, _userPassword,))
+            data = cursor.fetchall()
+
+
+            if len(data)>0:
+
+                    return {'status': 200, 'UserId':str(data[0][0])}
+            else:
+
+                    return {'status': 100,'message':'Authentication failure'}
+
+        except Exception as e:
+            return {'error': str(e)}
+
 api.add_resource(CreateUser, '/CreateUser')
 api.add_resource(AddEvent, '/AddEvent')
+api.add_resource(GetAllEvents, '/GettAllEvents')
+api.add_resource(AuthenticateUser, '/AuthenticateUser')
 
 if __name__ == '__main__':
     app.run(debug=True)
