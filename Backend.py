@@ -8,10 +8,10 @@ app = Flask(__name__)
 mysql = MySQL()
 
 # MySQL configuration
-app.config['MYSQL_DATABASE_USER'] = 'heroku_ad48c7c4d037cf0'
-app.config['MYSQL_DATABASE_PASSWORD'] = 'f3db00f8'
-app.config['MYSQL_DATABASE_DB'] = 'heroku_ad48c7c4d037cf0'
-app.config['MYSQL_DATABASE_HOST'] = 'us-cdbr-iron-east-05.cleardb.net'
+app.config['MYSQL_DATABASE_USER'] = 'root'
+app.config['MYSQL_DATABASE_PASSWORD'] = 'root'
+app.config['MYSQL_DATABASE_DB'] = 'fitnowdb'
+app.config['MYSQL_DATABASE_HOST'] = 'localhost'
 
 mysql.init_app(app)
 api = Api(app)
@@ -64,6 +64,7 @@ class CreateUser(Resource):
         except Exception as e:
             return {'error': str(e)}
 
+
 class AddEvent(Resource):
     def post(self):
         try:
@@ -81,19 +82,17 @@ class AddEvent(Resource):
             _eventDate = args['date']
             _eventCreator = args['creator']
             _eventPersonal = args['personal']
-            _event_id_Type_Event = args['event_type_id']
-            _event_id_Place = args['place_id']
-
-            #print _userId;
+            _eventIdType_Event = args['event_type_id']
+            _eventIdPlace = args["place_id"]
 
             conn = mysql.connect()
             cursor = conn.cursor()
-            cursor.callproc('sp_AddEvents', (_eventName, _eventDate, _eventCreator, _eventPersonal,
-                                             _event_id_Type_Event, _event_id_Place))
+            cursor.callproc('sp_AddEvent', (_eventName, _eventDate, _eventCreator, _eventPersonal,
+                                             _eventIdType_Event, _eventIdPlace))
             data = cursor.fetchall()
 
             conn.commit()
-            return {'StatusCode':'200', 'Message': 'Success'}
+            return {'StatusCode': '200', 'Message': 'Success'}
 
         except Exception as e:
             return {'error': str(e)}
