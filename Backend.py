@@ -88,7 +88,7 @@ class AddEvent(Resource):
             conn = mysql.connect()
             cursor = conn.cursor()
             cursor.callproc('sp_AddEvent', (_eventName, _eventDate, _eventCreator, _eventPersonal,
-                                             _eventIdType_Event, _eventIdPlace))
+                                            _eventIdType_Event, _eventIdPlace))
             data = cursor.fetchall()
 
             conn.commit()
@@ -107,7 +107,6 @@ class GetAllEvents(Resource):
             args = parser.parse_args()
 
             _eventName = args['name']
-
 
             conn = mysql.connect()
             cursor = conn.cursor()
@@ -147,21 +146,145 @@ class AuthenticateUser(Resource):
             cursor.callproc('sp_AuthenticateUser', (_userName, _userPassword,))
             data = cursor.fetchall()
 
+            if len(data) > 0:
 
-            if len(data)>0:
-
-                    return {'status': 200, 'UserId':str(data[0][0])}
+                return {'status': 200, 'UserId': str(data[0][0])}
             else:
 
-                    return {'status': 100,'message':'Authentication failure'}
+                return {'status': 100, 'message': 'Authentication failure'}
 
         except Exception as e:
             return {'error': str(e)}
+
+
+class AccountDetail(Resource):
+    def get(self):
+        try:
+            parser = reqparse.RequestParser()
+            parser.add_argument('userId', type=str)
+            args = parser.parse_args()
+
+            _userId = args['userId']
+
+            conn = mysql.connect()
+            cursor = conn.cursor()
+            cursor.callproc('sp_GetAccountDetail', (_userId,))
+            data = cursor.fetchall()
+            items_list = []
+
+            for item in data:
+                i = {
+                    'idUser': item[0],
+                    'Name': item[1],
+                    'FatLastName': item[2],
+                    'MoLastName': item[3],
+                    'Sex': str(item[4]),
+                    'Dni': item[5],
+                    # 'Born': item[6],
+                    'Phone': item[7],
+                    'Email': item[8],
+                    'Username': item[9],
+                    'Password': item[10],
+                    'IsWorked': item[11],
+                    'Direction': item[12],
+                }
+                items_list.append(i)
+            return {'StatusCode': '200', 'Items': items_list}
+        except Exception as e:
+            return {'error': str(e)}
+
+
+class CreatorEvent(Resource):
+    def get(self):
+        try:
+            parser = reqparse.RequestParser()
+            parser.add_argument('name', type=str)
+            args = parser.parse_args()
+
+            _eventName = args['name']
+
+            conn = mysql.connect()
+            cursor = conn.cursor()
+            cursor.callproc('sp_GetCreatorEvent', (_eventName,))
+            data = cursor.fetchall()
+
+            events_list = []
+            for event in data:
+                i = {
+                    'Creator': event[0]
+                }
+                events_list.append(i)
+            return {'StatusCode': '200', 'Creators': events_list}
+
+        except Exception as e:
+            return {'error': str(e)}
+
+
+class AddPlace(Resource):
+    def post(self):
+        try:
+            # Parse the arguments
+            parser = reqparse.RequestParser()
+            parser.add_argument('name', type=str)
+            parser.add_argument('localization', type=str)
+            args = parser.parse_args()
+
+            _placeName = args['name']
+            _placeLocalization = args['localization']
+
+            conn = mysql.connect()
+            cursor = conn.cursor()
+            cursor.callproc('sp_AddPlace', (_placeName, _placeLocalization,))
+            data = cursor.fetchall()
+
+            conn.commit()
+            return {'StatusCode': '200', 'Message': 'Success'}
+
+        except Exception as e:
+            return {'error': str(e)}
+
+
+class PlaceDetail(Resource):
+    def get(self):
+        try:
+            parser = reqparse.RequestParser()
+            parser.add_argument('placeId', type=str)
+            args = parser.parse_args()
+
+            _placeId = args['placeId']
+
+            conn = mysql.connect()
+            cursor = conn.cursor()
+            cursor.callproc('sp_GetPlaceDetail', (_placeId,))
+            data = cursor.fetchall()
+            items_list = []
+
+            for item in data:
+                i = {
+                    'idPlace': item[0],
+                    'Name': item[1],
+                    'Localization': item[2],
+                }
+                items_list.append(i)
+            return {'StatusCode': '200', 'Items': items_list}
+        except Exception as e:
+            return {'error': str(e)}
+
+
+class Test(Resource):
+    def get(self):
+        return {'mensaje': 'pruebaFitNow'}
+
 
 api.add_resource(CreateUser, '/CreateUser')
 api.add_resource(AddEvent, '/AddEvent')
 api.add_resource(GetAllEvents, '/GettAllEvents')
 api.add_resource(AuthenticateUser, '/AuthenticateUser')
+api.add_resource(AccountDetail, '/AccountDetail')
+api.add_resource(CreatorEvent, '/CreatorEvent')
+api.add_resource(AddPlace, '/AddPlace')
+api.add_resource(PlaceDetail, '/PlaceDetail')
+api.add_resource(Test, '/')
 
 if __name__ == '__main__':
     app.run(debug=True)
